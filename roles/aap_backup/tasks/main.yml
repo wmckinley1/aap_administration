@@ -1,0 +1,9 @@
+- name: Call tasks to create a backup of AAP
+  ansible.builtin.include_tasks:
+    file: create_backup.yml
+  when: create_backup == "true"
+
+- name: Call tasks to clean old backups of AAP
+  ansible.builtin.include_tasks:
+    file: clean_backups.yml
+  when: clean_backup == "true"

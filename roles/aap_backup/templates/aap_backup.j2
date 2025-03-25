@@ -1,0 +1,9 @@
+---
+apiVersion: automationcontroller.ansible.com/v1beta1
+kind: AutomationControllerBackup
+spec:
+  backup_pvc: "{{ backup_pvc_name }}"
+  deployment_name: "{{ backup_deployment_name }}"
+metadata:
+  namespace: "{{ backup_ocp_namespace }}"
+  name: "{{ backup_name }}"

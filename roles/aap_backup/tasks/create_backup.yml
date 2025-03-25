@@ -1,0 +1,24 @@
+- name: Set backup facts
+  ansible.builtin.set_fact:
+    backup_pvc_name: aap-backup-pvc-{{ ansible_date_time.date }}
+    backup_name: aap-backup-{{ ansible_date_time.date }}
+
+- name: Login to OCP
+  ansible.builtin.command: "oc login --token={{ ocp_token }} --server={{ ocp_server }}" 
+  no_log: true
+
+- name: Build create pvc template
+  ansible.builtin.template:
+    src: create_ocp_pvc.j2
+    dest: /tmp/create_ocp_pvc.yaml
+
+- name: Create PVC
+  ansible.builtin.command: "oc create -f /tmp/create_ocp_pvc.yaml"
+
+- name: Build create backup template
+  ansible.builtin.template:
+    src: aap_backup.j2
+    dest: /tmp/aap_backup.yaml
+
+- name: Create backup 
+  ansible.builtin.command: "oc create -f /tmp/aap_backup.yaml"

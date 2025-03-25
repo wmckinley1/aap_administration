@@ -1,0 +1,48 @@
+- name: Establish empty list
+  ansible.builtin.set_fact:
+    backup_list: []
+
+- name: Establish empty list
+  ansible.builtin.set_fact:
+    backup_dates_old: []
+    
+- name: Set facts
+  ansible.builtin.set_fact: 
+    curr_date: "{{ ansible_date_time.date }}"
+
+- name: Get date - {{ days_to_deletion }} days
+  ansible.builtin.command: "date +'%Y-%m-%d' -d '-{{ days_to_deletion }} days'"
+  register: result
+
+- name: Get date - {{ days_to_deletion }} days
+  ansible.builtin.set_fact:
+    new_date: "{{ result.stdout }}"
+
+- name: Login to OCP
+  ansible.builtin.command: "oc login --token={{ ocp_token }} --server={{ ocp_server }}" 
+
+- name: List backups
+  ansible.builtin.command: "oc get automationcontrollerbackup -n {{ backup_ocp_namespace }}" 
+  register: backups
+
+- name: Add backups to list 
+  ansible.builtin.set_fact:
+    backup_list: >
+      {{ backup_list + [item | split | first] }}
+  with_items: "{{ backups.stdout_lines[1:] }}"
+
+- name: Add old dates to list 
+  ansible.builtin.set_fact:
+    backup_dates_old: >
+      {{ backup_dates_old + [item.split("-", 2) | last] }}
+  loop: "{{ backup_list }}"
+  when: 
+    - item.split("-", 2) | last | to_datetime('%Y-%m-%d') <= new_date | to_datetime('%Y-%m-%d')
+
+- name: Delete old backups
+  ansible.builtin.command: "oc delete automationcontrollerbackup aap-backup-{{ item }} -n {{ backup_ocp_namespace }}" 
+  loop: "{{ backup_dates_old }}"
+
+- name: Delete old PVCs 
+  ansible.builtin.command: "oc delete pvc aap-backup-pvc-{{ item }} -n {{ backup_ocp_namespace }}" 
+  loop: "{{ backup_dates_old }}"
