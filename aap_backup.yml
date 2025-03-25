@@ -1,0 +1,13 @@
+# {{ backup_deployment_name }} = name of the new deployment if you revert
+# {{ backup_ocp_namespace }} = name of the namespace being targeted
+# {{ days_to_deletion }} = backups of this number of days or greater will get deleted
+---
+- name: Backup Automation Controller Operator
+  hosts: localhost
+  connection: local 
+  pre_tasks:
+  - name: start playbook
+    debug:
+      msg: "start playbook"
+  roles:
+  - aap_backup
